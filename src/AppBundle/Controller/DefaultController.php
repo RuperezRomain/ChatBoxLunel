@@ -59,7 +59,7 @@ class DefaultController extends Controller {
     }
 
     /**
-     * @Route("/afk", name="afk")
+     * @Route("/user/afk", name="afk")
      * @param Request $r
      */
     public function makeAfk(Request $r) {
@@ -69,7 +69,7 @@ class DefaultController extends Controller {
         //Recuperation de l'user courant
         $usr = $em->find(Utilisateur::class, $user);
         //Set le boolean a true pour le statut AFK
-        $usr->setAfk(1);
+        $usr->setAfk(true);
         //sauvegarde les changements de la propriété afk
         $em->merge($usr);
         $em->flush();
@@ -77,7 +77,7 @@ class DefaultController extends Controller {
     }
 
     /**
-     * @Route("/noafk", name="noafk")
+     * @Route("/user/noafk", name="noafk")
      * @param Request $r
      */
     public function makeNoAfk(Request $r) {
@@ -87,8 +87,8 @@ class DefaultController extends Controller {
         $user = $this->getUser();
         //Recuperation de l'user courant
         $usr = $em->find(Utilisateur::class, $user);
-        //Set le boolean a true pour ne pas/plus être afk
-        $usr->setAfk(0);
+        //Set le boolean a false pour ne pas/plus être afk
+        $usr->setAfk(false);
         //sauvegarde les changements de la propriété afk
         $em->merge($usr);
         $em->flush();
@@ -96,37 +96,15 @@ class DefaultController extends Controller {
     }
 
     /**
-     * @Route("/typing", name="typing")
-     * @param Request $r
+     * @Route("/user/typing")
      */
-    public function isTyping(Request $r) {
-
+    public function switchTyping(){
         $em = $this->getDoctrine()->getManager();
         $user = $this->getUser();
-
-        $usr = $em->find(Utilisateur::class, $user);
-        $usr->setTyping(1);
-
-        $em->merge($usr);
+        $user->setTyping(!$user->getTyping());
+        $em->merge($user);
         $em->flush();
-        return new Response("ok");
+        return new Response("typing");
     }
-
-    /**
-     * @Route("/notyping", name="notyping")
-     * @param Request $r
-     */
-    public function isNoTyping(Request $r) {
-
-        $em = $this->getDoctrine()->getManager();
-        $user = $this->getUser();
-
-        $usr = $em->find(Utilisateur::class, $user);
-        $usr->setTyping(0);
-
-        $em->merge($usr);
-        $em->flush();
-        return new Response("ok");
-    }
-
+    
 }

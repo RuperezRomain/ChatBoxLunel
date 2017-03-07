@@ -12,110 +12,68 @@ $(document).ready(function () {
 
 
 // ------ FONCTION AFK ------
+function updateAfk(flag) {
+    if (flag) {
+        $.ajax({
+            async: true,
+            type: 'POST',
+            dataType: 'text',
+            url: "./user/afk",
+            success: function () {
+                //change le style de la page en tant que Afk
+                $("#wrapper").attr('class', 'away afkBack');
+                $("#afk").attr('class', 'afkAlert2');
+            }
 
-function afk() {
-    $.ajax({
-        async: true,
-        type: 'POST',
-        //appelle la methode du controller afk
-        url: "./afk",
-        success: function () {
-            //change le style de la page en tant que Afk
-            $("#wrapper").attr('class', 'away afkBack');
-            $("#afk").attr('class', 'afkAlert2');
-        }
+        });
 
-    });
+    } else {
+        $.ajax({
+            async: true,
+            type: 'POST',
+            dataType: 'text',
+            url: "./user/noafk",
+            success: function () {
+                //change le style de la page en tant que noAfk
+                $("#wrapper").attr('class', 'noAway');
+                $("#afk").attr('class', 'afkAlert');
+            }
+        });
+    }
 }
 
-// Declenche la fonction afk au bout de 5 secondes
-var activityTimeout = setTimeout(afk, 10000);
-
-function resetActive() {
-    //appelle la fonction noafk 
-    noAfk();
-    //reinitialise le timeout
-    clearTimeout(activityTimeout);
-    //redemarre un timeout et active la fonction afk au bout de 5 secondes
-    activityTimeout = setTimeout(afk, 10000);
-}
-
-function noAfk() {
-
-    $.ajax({
-        async: true,
-        type: 'POST',
-        //appelle la methode du controller noafk
-        url: "./noafk",
-        success: function () {
-            //change le style de la page en tant que noAfk
-            $("#wrapper").attr('class', 'noAway');
-            $("#afk").attr('class', 'afkAlert');
-        }
-
-    });
-
-}
-
-// Si un click sur le body, appelle la fonction resetactive
-$("body").click(function ()
-{
-    resetActive();
+//déclencheur
+$("body").click(function () {
+    updateAfk(false);
+    setTimeout(function () {
+        updateAfk(true);
+    }, 15000
+            );
 });
 
+// ---------- FIN AFK
 
 
-// ------- FONCTION TYPING
-
-function typing() {
-
+// ------- FONCTION TYPING --------
+function switchTyping() {
     $.ajax({
         async: true,
         type: 'POST',
-        datatype: 'text',
-        url: "./typing",
-        success: function (data, textStatus, jqXHR) {
-        }
-
+        dataType: 'text',
+        url: "./user/typing"
     });
 }
-function noTyping() {
-
-    $.ajax({
-        async: true,
-        type: 'POST',
-        url: "./notyping",
-        success: function (data, textStatus, jqXHR) {
-        }
-
-    });
-}
-
-
-$("#msg").keypress(function () {
-    typing();
-    $("#typing").text(this.utilisateur + " est en train d'écrire");
-
+$("#msg").focusin(function () {
+    switchTyping();
 });
-function debounce(fn, duration) {
-    var timer;
-    return function () {
-        clearTimeout(timer);
-        timer = setTimeout(fn, duration);
-    };
-}
-
-$(function () {
-    noTyping();
-    $('#msg').on('keyup', debounce(function () {
-
-        $("#typing").text("User is not typing");
-    }, 20000));
-
+$("#msg").focusout(function () {
+    switchTyping();
 });
 
+// ----------FIN TYPING
 
 
+// ---- ADD MESSAGE
 $("form").submit(function (e) {
     e.preventDefault();
     $.ajax({
@@ -146,10 +104,14 @@ function updateUsers() {
             $("#usersAfk").empty();
             var liste = $.parseJSON(data);
             $(liste).each(function (e) {
+                var typ = "";
+                if (this.typing == 1) {
+                    typ = "...";
+                }
                 if (this.afk == 1) {
-                    $("#users").append("<p> AFK - " + "@" + this.email + "</p>");
+                    $("#users").append("<p> AFK - " + "@" + this.email + typ + "</p>");
                 } else {
-                    $("#users").append("<p>" + "@" + this.email + "</p>");
+                    $("#users").append("<p>" + "@" + this.email + typ + "</p>");
 
                 }
             });
